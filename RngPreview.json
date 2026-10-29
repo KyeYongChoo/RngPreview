@@ -1,0 +1,10 @@
+{
+  "id": "RngPreview",
+  "name": "RNG Preview",
+  "author": "KyeYongChoo",
+  "description": "Shows what random card and potion generators (Discovery, Splash, Colorless Potion, Alchemize, Toolbox, ...) will give, and plans the order to use them in. Press F8 in combat.",
+  "version": "1.0.0",
+  "has_pck": false,
+  "has_dll": true,
+  "affects_gameplay": false
+}

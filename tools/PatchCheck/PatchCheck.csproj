@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Applies a mod's Harmony patches against the real sts2.dll (no game needed) and lists what got patched.
+    Usage: see CLAUDE.md.
+    Don't add a reference to the mod being checked: .NET would then load that stale copy instead of the path given.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- The game folder ships its own .NET runtime files, which the copy below puts next to the exe and would confuse
+         the apphost; run it as "dotnet PatchCheck.dll" instead. -->
+    <UseAppHost>false</UseAppHost>
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2\data_sts2_windows_x86_64</GameDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="sts2"><HintPath>$(GameDir)\sts2.dll</HintPath></Reference>
+    <Reference Include="GodotSharp"><HintPath>$(GameDir)\GodotSharp.dll</HintPath></Reference>
+    <Reference Include="0Harmony"><HintPath>$(GameDir)\0Harmony.dll</HintPath></Reference>
+  </ItemGroup>
+  <!-- sts2.dll's own dependencies (SmartFormat, Sentry, ...). -->
+  <Target Name="CopyGameDlls" AfterTargets="Build">
+    <ItemGroup><GameDlls Include="$(GameDir)\*.dll" /></ItemGroup>
+    <Copy SourceFiles="@(GameDlls)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>RngPreview</AssemblyName>
+    <RootNamespace>RngPreview</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <!-- The installed game's managed assemblies. Override with: dotnet build -p:GameDir="D:\...\data_sts2_windows_x86_64" -->
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2\data_sts2_windows_x86_64</GameDir>
+    <ModDir>$(GameDir)\..\mods\RngPreview</ModDir>
+    <!-- BaseLib from the Steam Workshop (item 3737335127). Override with -p:BaseLibDll="...". -->
+    <BaseLibDll Condition="'$(BaseLibDll)' == ''">$(GameDir)\..\..\..\workshop\content\2868840\3737335127\BaseLib\BaseLib.dll</BaseLibDll>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="sts2"><HintPath>$(GameDir)\sts2.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="GodotSharp"><HintPath>$(GameDir)\GodotSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(GameDir)\0Harmony.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The optional BaseLib integration is its own assembly (see ModToggle/BaseLibBridge.cs). -->
+    <Compile Remove="BaseLibCompat/**" />
+    <None Remove="BaseLibCompat/**" />
+    <!-- Test harnesses, built separately (see CLAUDE.md). -->
+    <Compile Remove="tools/**" />
+    <None Remove="tools/**" />
+    <None Include="RngPreview.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="BuildBaseLibCompat" AfterTargets="Build" Condition="Exists('$(BaseLibDll)')">
+    <MSBuild Projects="BaseLibCompat/RngPreview.BaseLib.csproj" Targets="Restore;Build"
+             Properties="Configuration=$(Configuration);GameDir=$(GameDir);BaseLibDll=$(BaseLibDll)" />
+  </Target>
+  <!-- Installs the mod into the game's mods folder. Skip with: dotnet build -p:Install=false -->
+  <Target Name="InstallMod" AfterTargets="BuildBaseLibCompat" Condition="'$(Install)' != 'false'">
+    <ItemGroup>
+      <ModFiles Include="$(TargetPath);$(OutDir)RngPreview.json" />
+      <ModFiles Include="$(OutDir)RngPreview.BaseLib.dll" Condition="Exists('$(OutDir)RngPreview.BaseLib.dll')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModDir)" />
+    <Message Importance="high" Text="Installed to $(ModDir)" />
+  </Target>
+</Project>
